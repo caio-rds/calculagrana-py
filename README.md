@@ -4,16 +4,12 @@
 
 ### Mais informações sobre a aplicação:
 
-> - A aplicação foi desenvolvida em Python com o framework FastAPI.
-> - Possui Autenticação JWT.
-> - Utiliza o banco de dados SQLite.
-> - Possui ORM com SQLAlchemy.
-> - Utiliza o Pydantic para validação de dados.
+> - A aplicação em Python/FastAPI.
+> - DataBase Mysql e SQLAlchemy.
 
 ### Como rodar a aplicação:
 
-> - Clone o repositório.
-> - Crie um ambiente virtual.
+> - Clone o repositório e Crie um ambiente virtual.
 > - Instale as dependências com o comando `pip install -r requirements.txt`.
 > - Rode a aplicação com o comando `uvicorn app.main:app --reload`.
 
@@ -23,7 +19,8 @@
 > - `/v0/user/ - POST`: Cria um usuário. Deve ser enviado um JSON com o seguinte formato:
 > - `{"username": "string", "password": "string", "email": "string"}`.
 
-> `/v0/user/username - GET`: Retorna um JSON com os dados do usuário com o username informado.
+> `/v0/user/username - GET`: Retorna um JSON com os dados do usuário com o username informado, caso receba o parametro
+> 'conversions' com valor true, retornará um array com as conversões do usuário.
 
 > - `/v0/user/username - PUT`: Ainda está sendo implementado.
 
@@ -39,16 +36,7 @@
 > - `{"from_currency": "string", "to_currency": "string", "amount": float}`.
 
 ### Futuros Updates
+> - Nova API Extra para converter, tratar error, aproximação de inputerror das moedas.
 > - Rota para Atualizar ou Deletar um usuário.
-> - Salvar novas informações do usuário, como número ou telefone e validar esses dados.
-> - Salvar novas informações na conversão, como valor das moedas utilizadas na data da conversão.
-> - Sistema para alterar senha do usuário.
-> - Sistema para buscar conversão por ID.
-> - Sistema para buscar conversão por data.
-> - Sistema para buscar conversão por usuário.
-> - Sistema para buscar conversão por moeda.
-> - Sistema para ver quais moedas estão disponíveis para conversão.
-> - Consulta de valor de moeda em tempo real ou em uma data específica.
 
 ## Ainda em desenvolvimento...
-```

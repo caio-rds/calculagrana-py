@@ -1,5 +1,8 @@
 from fastapi import HTTPException
+from fastapi.encoders import jsonable_encoder
+
 from app.src.model.user import CreateUser, ReadUser
+from app.src.schema.conversion import Conversion
 from app.src.services.database import *
 from app.src.services.auth import pwd_hash
 from app.src.schema.user import User
@@ -10,18 +13,27 @@ from sqlalchemy.orm import Session
 db: Session = SessionLocal()
 
 
-async def read(username: str) -> ReadUser | None:
+async def read(username: str, conversions: bool = False) -> ReadUser | None:
     if user := db.query(User).filter(User.username == username).first():
+        if conversions:
+            user_conversions = db.query(Conversion).filter(Conversion.username == user.username).all()
+            return ReadUser(
+                email=user.email,
+                username=user.username,
+                full_name=user.full_name,
+                phone_number=user.phone_number,
+                conversions=jsonable_encoder(user_conversions)
+            )
         return ReadUser(
             email=user.email,
             username=user.username,
-            full_name=user.full_name
+            full_name=user.full_name,
+            phone_number=user.phone_number
         )
     return None
 
 
 async def create(new_user: CreateUser) -> ReadUser:
-
     new_user.password = await pwd_hash(new_user.password)
     user = User(**new_user.dict())
     if db.query(User).filter(User.email == new_user.email or User.username == new_user.username).first():
@@ -32,7 +44,8 @@ async def create(new_user: CreateUser) -> ReadUser:
     return ReadUser(
         email=user.email,
         username=user.username,
-        full_name=user.full_name
+        full_name=user.full_name,
+        phone_number=user.phone_number
     )
 
 

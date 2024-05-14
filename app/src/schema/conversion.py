@@ -1,5 +1,5 @@
 from app.src.services.database import Base
-from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy import Column, String, Integer, DateTime, Date
 import datetime
 
 
@@ -18,4 +18,4 @@ class Conversion(Base):
     def __repr__(self):
         return (f"Conversion(from_currency={self.from_currency}, to_currency={self.to_currency}, amount={self.amount},"
                 f"conversion_value={self.conversion_value}, username={self.username}, request_ip={self.request_ip},"
-                f"conversion_id={self.conversion_id}, request_date={self.request_date})")
+                f"conversion_id={self.conversion_id}, request_date={self.request_date}")

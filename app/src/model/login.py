@@ -11,4 +11,3 @@ class RecoveryCode(BaseModel):
     code: str
     username: str
     u_id: str
-    

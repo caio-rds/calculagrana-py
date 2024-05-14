@@ -1,3 +1,5 @@
+from datetime import datetime, date
+
 from pydantic import BaseModel
 from typing import Optional
 
@@ -10,5 +12,4 @@ class Conversion(BaseModel):
     username: Optional[str] = None
     request_ip: Optional[str] = None
     conversion_id: str = None
-    request_date: str = None
-
+    request_date: datetime = None
