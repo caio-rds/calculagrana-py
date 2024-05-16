@@ -20,7 +20,7 @@ async def check_pwd(pwd: str, passwd_hash: str) -> bool:
 
 async def encode_token(username: str) -> str:
     payload = {
-        "exp": datetime.datetime.now(datetime.UTC) + timedelta(minutes=1),
+        "exp": datetime.datetime.now(datetime.UTC) + timedelta(minutes=10),
         "iat": datetime.datetime.now(datetime.UTC),
         "sub": username
     }

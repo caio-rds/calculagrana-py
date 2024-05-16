@@ -1,15 +1,20 @@
-from datetime import datetime, date
+from datetime import datetime
 
 from pydantic import BaseModel
 from typing import Optional
 
 
 class Conversion(BaseModel):
-    from_currency: str
-    to_currency: str
+    base_currency: Optional[str] = 'EUR'
+    to_currency: list[str] | str
     amount: float
-    conversion_value: Optional[float] = None
-    username: Optional[str] = None
+    conversions: Optional[dict] = {}
+    username: Optional[str] = 'anonymous'
     request_ip: Optional[str] = None
     conversion_id: str = None
-    request_date: datetime = None
+
+
+class Currencies(BaseModel):
+    code: str
+    name: str
+    name_plural: str

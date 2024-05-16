@@ -16,18 +16,21 @@ async def conversion(payload: Conversion, request: Request, username: Optional[d
     payload.request_ip = request.client.host
     if new_conv := await new_conversion(payload):
         return {
-            "from_currency": new_conv.from_currency,
+            "base_currency": new_conv.base_currency,
             "to_currency": new_conv.to_currency,
             "amount": new_conv.amount,
-            "conversion_value": new_conv.conversion_value
+            "conversions": new_conv.conversions
         }
     raise HTTPException(status_code=400, detail="Conversion failed")
 
 
-@router.get("/{c_id}", response_model=Conversion | dict)
-async def get_conversion(c_id: str, currencies: str) -> Conversion | dict:
-    if c_id:
-        return await possible_conversions(currencies)
+@router.get("/search/{c_id}", response_model=Conversion)
+async def get_conversion(c_id: str) -> Conversion:
     if conv := await get_conv(c_id):
         return conv
     raise HTTPException(status_code=400, detail="Conversion not found")
+
+
+@router.get("/currencies")
+async def get_currencies(currencies: str = None) -> dict:
+    return await possible_conversions(currencies)

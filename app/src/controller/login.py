@@ -17,7 +17,7 @@ async def upsert_token(username: str) -> str:
         db.refresh(user)
         db.close()
         return user.token
-
+    db.close()
     raise HTTPException(status_code=404, detail='User not found')
 
 
@@ -30,5 +30,5 @@ async def match_user(username: str, password: str, login_ip: str, user_agent: st
             db.commit()
             db.close()
             return match
-
+    db.close()
     return False

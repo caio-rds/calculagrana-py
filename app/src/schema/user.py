@@ -13,7 +13,6 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.UTC))
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.UTC))
     token = Column(String)
-    deleted = Column(Integer, default=0)
 
     def __repr__(self):
         return f"<User {self.username}>"

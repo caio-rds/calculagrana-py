@@ -63,6 +63,10 @@ class ReadUser(BaseModel):
 class UpdateUser(BaseModel):
     username: str
     email: Optional[str] = None
-    password: Optional[str] = None
     full_name: Optional[str] = None
     phone_number: Optional[str] = None
+
+
+class UpdateUserPassword(BaseModel):
+    username: str
+    password: str

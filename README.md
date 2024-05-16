@@ -26,7 +26,6 @@
 
 > - `/v0/user/username - DELETE`: Ainda está sendo implementado.
 
-
 > - `/v0/login - POST`: Retorna um token JWT. Deve ser enviado um JSON com o seguinte formato:
 > - Multipart Form: `{"username": "string", "password": "string"}`.
 
@@ -36,7 +35,9 @@
 > - `{"from_currency": "string", "to_currency": "string", "amount": float}`.
 
 ### Futuros Updates
-> - Nova API Extra para converter, tratar error, aproximação de inputerror das moedas.
-> - Rota para Atualizar ou Deletar um usuário.
+> - tratar erros e aproximação de inputerror das moedas.
+> - Recovery Password with codes
 
-## Ainda em desenvolvimento...
+## Ainda em desenvolvimento
+
+> - Ainda em desenvolvimento, a aplicação está sendo feita para estudo e prática de Python/FastAPI.
