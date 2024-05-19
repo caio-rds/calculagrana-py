@@ -91,7 +91,7 @@ async def convert(amount: float, base_currency: str, to_currency: str or list) -
                     }
                 })
         return result
-    raise HTTPException(status_code=500, detail="Try in few seconds.")
+    raise HTTPException(status_code=500, detail="Try again later.")
 
 
 def update_all_currencies():
