@@ -9,7 +9,7 @@ from app.src.controller.conversion import new_conversion, get_conversion as get_
 router = APIRouter()
 
 
-@router.post("/")
+@router.post("/", response_model_exclude_unset=True, response_model=dict)
 async def conversion(payload: Conversion, request: Request, username: Optional[dict] = Depends(auth_wrapper)) -> dict:
     if username.get('successful'):
         payload.username = username.get('username')

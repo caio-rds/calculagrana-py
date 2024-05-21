@@ -20,7 +20,7 @@
 > - Crie um arquivo `.env` na raiz do projeto e adicione as seguintes variáveis:
 
 ```.env
-URI_DB=mysql://root:my-secret-pw@localhost:3306/CalculaGrana
+URI_DB=mysql+pymysql://root:my-secret-pw@localhost:3306/CalculaGrana
 SECRET=SuaSecret
 SENDGRID_KEY=SuaKey
 FREECURRENCY_KEY=SuaKey
@@ -41,9 +41,10 @@ TEMPLATE_ID=SuaTemplate
 > - Consulta possíveis moedas para conversão.
 > - Recuperação de senha via código ou via semelhança.
 > - Envio de email para recuperação de senha com o código.
+> - Similaridade de moedas ao receber input errado e devolve uma sugestão.
 
 ### Futuros Updates
+> - Tratar errors / suggestion ao realizar uma conversão.
 > - Adicionar testes unitários.
 > - Adicionar testes de integração.
 > - Adicionar Novos templates para o envio de emails.
-> - tratar erros e aproximação de inputerror das moedas.

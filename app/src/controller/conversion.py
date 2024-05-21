@@ -6,6 +6,7 @@ import os
 import requests
 from fastapi import HTTPException
 
+from difflib import SequenceMatcher
 from app.src.services.database import SessionLocal
 from app.src.schema.conversion import Conversion, Currencies
 from app.src.model.conversion import Conversion as ConversionModel
@@ -76,7 +77,9 @@ async def possible_conversions(currencies) -> any:
 
 
 async def convert(amount: float, base_currency: str, to_currency: str or list) -> any:
-    result = {}
+    result = {
+        'errors': []
+    }
     if all_currencies:
         if isinstance(to_currency, str):
             to_currency = [to_currency]
@@ -90,7 +93,26 @@ async def convert(amount: float, base_currency: str, to_currency: str or list) -
                         'unit_value': round((currency_value / all_currencies.get(base_currency).get('value')), 2)
                     }
                 })
+                continue
+            result['errors'].append({
+                'currency': currency,
+                'error': 'Currency not found.',
+                'suggest': await did_you_mean(currency)
+            })
         return result
+    raise HTTPException(status_code=500, detail="Try again later.")
+
+
+async def did_you_mean(currency: str) -> any:
+    higher = 0
+    suggestion = None
+    if all_currencies:
+        for key in all_currencies.keys():
+            match = SequenceMatcher(None, currency, key).ratio()
+            if match > 0.5 and match > higher:
+                higher = match
+                suggestion = key
+        return suggestion
     raise HTTPException(status_code=500, detail="Try again later.")
 
 
