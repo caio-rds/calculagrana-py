@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from pydantic import BaseModel
 from typing import Optional
@@ -12,6 +12,7 @@ class Conversion(BaseModel):
     username: Optional[str] = 'anonymous'
     request_ip: Optional[str] = None
     conversion_id: str = None
+    request_date: Optional[datetime.datetime] = datetime.datetime.now()
 
 
 class Currencies(BaseModel):

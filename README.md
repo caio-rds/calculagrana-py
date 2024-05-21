@@ -1,8 +1,7 @@
 # CalculaGrana
 
 ## Uma aplicação para calcular o valor de conversões de moedas.
-
-### Aplicação RESTFUL usando Python/FastAPI, MySQL/SQLAlchemy e JWT.
+> Aplicação RESTFUL usando <b>Python/FastAPI</b>, <b>MySQL/SQLAlchemy</b> e <b>JWT</b>.
 
 ### Como rodar a aplicação:
 
@@ -18,7 +17,23 @@
     MySQL</a>.
 
 
+### Serviços Externos
+> - Para as conversão de moedas, foi utilizado a <a href="https://app.freecurrencyapi.com">Free Currency API</a>.
+> - Para enviar os emails foi usado a <a href="https://app.sendgrid.com">SendGrid</a>.
+> - Recomendo se cadastrar e criar suas próprias Keys, todos os serviços são gratuitos.
+
+### Funcionalidades
+> - Cadastro de Usuários com validação de Email, Telefone e Nome Completo.
+> - Login de Usuários.
+> - Autenticação de Usuários via JWT.
+> - Conversão de moedas podem ser feitas logadas (gera histórico) ou anonimamente.
+> - Consulta de conversões com base no ID.
+> - Consulta possíveis moedas para conversão.
+> - Recuperação de senha via código ou via semelhança.
+> - Envio de email para recuperação de senha com o código.
+
 ### Futuros Updates
-> - Migrations
+> - Adicionar testes unitários.
+> - Adicionar testes de integração.
+> - Adicionar Novos templates para o envio de emails.
 > - tratar erros e aproximação de inputerror das moedas.
-> - Recovery Password with codes

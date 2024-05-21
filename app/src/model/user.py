@@ -1,3 +1,6 @@
+import datetime
+import random
+
 from fastapi import HTTPException
 
 import re
@@ -67,6 +70,26 @@ class UpdateUser(BaseModel):
     phone_number: Optional[str] = None
 
 
-class UpdateUserPassword(BaseModel):
+class RequestRecovery(BaseModel):
+    username: str
+    send_to: str
+
+
+class ResponseRecovery(BaseModel):
+    username: str
+    code: str
+    send_to: str
+    request_ip: str
+    request_date: datetime.datetime
+
+
+class RecoveryByCode(BaseModel):
+    username: str
+    code: str
+    new_password: str
+
+
+class RecoveryByPassword(BaseModel):
     username: str
     password: str
+    new_password: str

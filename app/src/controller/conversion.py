@@ -2,11 +2,11 @@ import datetime
 import logging
 import threading
 import time
-
+import os
 import requests
 from fastapi import HTTPException
 
-from app.src.services.database import *
+from app.src.services.database import SessionLocal
 from app.src.schema.conversion import Conversion, Currencies
 from app.src.model.conversion import Conversion as ConversionModel
 from sqlalchemy.orm import Session
@@ -18,7 +18,7 @@ db: Session = SessionLocal()
 
 all_currencies = {}
 
-api_key = 'fca_live_c90s1wcUOzoQYnZlSAlVOomRvAEwhjafZFfX0noF'
+api_key = os.getenv('FREECURRENCY_KEY')
 base = 'https://api.freecurrencyapi.com/v1'
 
 
@@ -101,7 +101,7 @@ def update_all_currencies():
                                          params={'base_currency': 'EUR'}).json().get('data')
         if currency_exists := db.query(Currencies).filter(Currencies.code.in_(currencies.keys())).all():
             for currency in currency_exists:
-                currency.value = currencies_values.get(currency.code)
+                currency.c_value = currencies_values.get(currency.code)
                 currency.updated_at = datetime.datetime.now(datetime.UTC)
         else:
             for key, value in currencies.items():
@@ -109,7 +109,7 @@ def update_all_currencies():
                     code=key,
                     name=value.get('name'),
                     name_plural=value.get('name_plural'),
-                    value=currencies_values.get(key),
+                    c_value=currencies_values.get(key),
                     base_currency='EUR',
                     updated_at=datetime.datetime.now(datetime.UTC)
                 )

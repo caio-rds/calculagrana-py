@@ -1,4 +1,5 @@
 import datetime
+import os
 from datetime import timedelta
 import jwt
 from fastapi import Depends, HTTPException
@@ -7,7 +8,7 @@ from passlib.context import CryptContext
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "secret"
+SECRET_KEY = os.getenv("SECRET")
 
 
 async def pwd_hash(pwd: str) -> str:

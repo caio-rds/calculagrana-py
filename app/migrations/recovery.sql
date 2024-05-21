@@ -1,0 +1,11 @@
+CREATE TABLE recovery (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(30) NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    way VARCHAR(5) NOT NULL,
+    send_to VARCHAR(50) NOT NULL,
+    request_ip VARCHAR(20) NOT NULL,
+    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    used INT DEFAULT 0,
+    used_date TIMESTAMP
+);

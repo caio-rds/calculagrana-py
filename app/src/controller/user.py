@@ -13,48 +13,41 @@ from sqlalchemy.orm import Session
 db: Session = SessionLocal()
 
 
-async def read(username: str, conversions: bool = False) -> ReadUser | None:
+async def read(username: str, conversions: bool = False) -> dict | None:
+    result = {}
     if user := db.query(User).filter(User.username == username).first():
+        result.update({
+            'email': user.email,
+            'username': user.username,
+            'full_name': user.full_name,
+            'phone_number': user.phone_number
+        })
         if conversions:
             user_conversions = db.query(Conversion).filter(Conversion.username == user.username).all()
-            db.close()
-            return ReadUser(
-                email=user.email,
-                username=user.username,
-                full_name=user.full_name,
-                phone_number=user.phone_number,
-                conversions=jsonable_encoder(user_conversions)
-            )
-        db.close()
-        return ReadUser(
-            email=user.email,
-            username=user.username,
-            full_name=user.full_name,
-            phone_number=user.phone_number
-        )
+            result.update({'conversions': [jsonable_encoder(c) for c in user_conversions]})
     db.close()
-    return None
+    return result
 
 
-async def create(new_user: CreateUser) -> ReadUser:
+async def create(new_user: CreateUser) -> dict:
     new_user.password = await pwd_hash(new_user.password)
     user = User(**new_user.dict())
     if db.query(User).filter(User.email == new_user.email or User.username == new_user.username).first():
         db.close()
-        raise HTTPException(status_code=400, detail='User already exists')
+        raise ValueError('User already exists')
     db.add(user)
     db.commit()
     db.refresh(user)
     db.close()
-    return ReadUser(
-        email=user.email,
-        username=user.username,
-        full_name=user.full_name,
-        phone_number=user.phone_number
-    ).dict(exclude_none=True, exclude={'conversions'})
+    return {
+        'email': user.email,
+        'username': user.username,
+        'full_name': user.full_name,
+        'phone_number': user.phone_number
+    }
 
 
-async def update(user_update: UpdateUser) -> ReadUser:
+async def update(user_update: UpdateUser) -> dict:
     if user := db.query(User).filter(User.username == user_update.username).first():
         for key, value in user_update.dict(exclude_unset=True).items():
             if value == getattr(user, key):
@@ -63,17 +56,17 @@ async def update(user_update: UpdateUser) -> ReadUser:
         db.commit()
         db.refresh(user)
         db.close()
-        return ReadUser(
-            email=user.email,
-            username=user.username,
-            full_name=user.full_name,
-            phone_number=user.phone_number
-        ).dict(exclude_none=True, exclude={'conversions'})
+        return {
+            'email': user.email,
+            'username': user.username,
+            'full_name': user.full_name,
+            'phone_number': user.phone_number
+        }
     db.close()
-    raise HTTPException(status_code=404, detail='User not found')
+    raise ValueError('User not found')
 
 
-async def delete(username: str) -> dict:
+async def delete(username: str) -> bool:
     if user := db.query(User).filter(User.username == username).first():
         db.delete(user)
         if history := db.query(Conversion).filter(Conversion.username == username).all():
@@ -84,4 +77,3 @@ async def delete(username: str) -> dict:
         return True
     db.close()
     return False
-

@@ -26,10 +26,10 @@ class Currencies(Base):
     code = Column(String, index=True, unique=True)
     name = Column(String)
     name_plural = Column(String)
-    value = Column(Integer)
+    c_value = Column(Integer)
     base_currency = Column(String)
     updated_at = Column(DateTime, default=datetime.datetime.now(datetime.UTC))
 
     def __repr__(self):
         return (f"Currencies(code={self.code}, name={self.name}, name_plural={self.name_plural},"
-                f" value={self.value}, base_currency={self.base_currency}, updated_at={self.updated_at}")
+                f" value={self.c_value}, base_currency={self.base_currency}, updated_at={self.updated_at}")
