@@ -16,6 +16,16 @@
 > - Para instalar o MySQL localmente, siga o tutorial do site oficial do <a href="https://www.mysql.com/downloads/">
     MySQL</a>.
 
+### Variáveis de Ambiente
+> - Crie um arquivo `.env` na raiz do projeto e adicione as seguintes variáveis:
+
+```.env
+URI_DB=mysql://root:my-secret-pw@localhost:3306/CalculaGrana
+SECRET=SuaSecret
+SENDGRID_KEY=SuaKey
+FREECURRENCY_KEY=SuaKey
+TEMPLATE_ID=SuaTemplate
+``` 
 
 ### Serviços Externos
 > - Para as conversão de moedas, foi utilizado a <a href="https://app.freecurrencyapi.com">Free Currency API</a>.
