@@ -12,9 +12,10 @@ async def new_email(to_email: str, code: str):
             subject='Reset Password'
         )
 
-        message.template_id = os.getenv('TEMPLATE_ID')
+        message.template_id = os.getenv('TEMPLATE_ID_OWN')
         sg = SendGridAPIClient(os.getenv('SENDGRID_KEY'))
         response = sg.send(message)
         print(response.status_code)
+        print(response.body)
     except Exception as e:
         print(str(e))

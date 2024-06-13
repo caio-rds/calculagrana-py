@@ -44,7 +44,6 @@ TEMPLATE_ID=SuaTemplate
 > - Similaridade de moedas ao receber input errado e devolve uma sugestão.
 
 ### Futuros Updates
-> - Tratar errors / suggestion ao realizar uma conversão.
 > - Adicionar testes unitários.
 > - Adicionar testes de integração.
 > - Adicionar Novos templates para o envio de emails.
