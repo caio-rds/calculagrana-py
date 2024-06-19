@@ -1,36 +1,35 @@
+# from typing import Optional
+#
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Request, HTTPException
 
-from app.src.model.conversion import Conversion
-from app.src.services.auth import auth_wrapper
-from app.src.controller.conversion import new_conversion, get_conversion as get_conv, possible_conversions
+from app.src.model.conversion import Conversion, ConversionRequest
+from app.src.controller.conversion import possible_conversions, new_conversion, get_conversion_by_id
+from app.src.utils.auth import auth_wrapper
 
 router = APIRouter()
 
 
-@router.post("/", response_model_exclude_unset=True, response_model=dict)
-async def conversion(payload: Conversion, request: Request, username: Optional[dict] = Depends(auth_wrapper)) -> dict:
+@router.post("/", response_model_exclude_unset=True, response_model=Conversion)
+async def conversion(payload: ConversionRequest,
+                     request: Request,
+                     username: Optional[dict] = Depends(auth_wrapper)) -> Conversion:
     if username.get('successful'):
         payload.username = username.get('username')
+    payload.user_agent = request.headers.get('User-Agent')
     payload.request_ip = request.client.host
     if new_conv := await new_conversion(payload):
-        return {
-            "base_currency": new_conv.base_currency,
-            "to_currency": new_conv.to_currency,
-            "amount": new_conv.amount,
-            "conversions": new_conv.conversions
-        }
+        return new_conv
     raise HTTPException(status_code=400, detail="Conversion failed")
 
 
-@router.get("/search/{c_id}", response_model=Conversion)
-async def get_conversion(c_id: str) -> Conversion:
-    if conv := await get_conv(c_id):
+@router.get("/search/{conversion_id}", response_model=Conversion)
+async def get_conversion(conversion_id: str) -> Conversion:
+    if conv := await get_conversion_by_id(conversion_id=conversion_id):
         return conv
-    raise HTTPException(status_code=400, detail="Conversion not found")
 
 
 @router.get("/currencies")
-async def get_currencies(currencies: str = None) -> dict:
+async def get_currencies(currencies: str = None) -> list:
     return await possible_conversions(currencies)

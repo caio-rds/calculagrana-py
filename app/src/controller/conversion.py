@@ -1,157 +1,65 @@
-import datetime
 import logging
-import threading
-import time
-import os
-import requests
-from fastapi import HTTPException
-
 from difflib import SequenceMatcher
-from app.src.services.database import SessionLocal
-from app.src.schema.conversion import Conversion, Currencies
-from app.src.model.conversion import Conversion as ConversionModel
-from sqlalchemy.orm import Session
 
-import uuid
-import random
+from app.src.model.conversion import Currency, ConversionRequest, Conversion, ResultConversion
+from app.src.utils.custom_exceptions import NotFound
+from beanie.operators import In
 
-db: Session = SessionLocal()
-
-all_currencies = {}
-
-api_key = os.getenv('FREECURRENCY_KEY')
-base = 'https://api.freecurrencyapi.com/v1'
+from app.src.utils.validations import to_bson
 
 
-def new_id():
-    new_uuid = str(uuid.uuid4()).split('-')
-    rand = random.randint(1, len(new_uuid) - 1)
-    return new_uuid[0] + new_uuid[rand]
+async def new_conversion(conversion: ConversionRequest) -> Conversion:
+    new_conv = Conversion(**conversion.model_dump())
+    new_conv.conversions = await convert(conversion.amount, conversion.base_currency, conversion.to_currency)
+    await new_conv.save()
+    logging.log(level=logging.INFO, msg=f"New conversion created: {new_conv.id} by {new_conv.username}")
+    return new_conv
 
 
-async def new_conversion(conversion: ConversionModel) -> ConversionModel:
-    conversion.conversions = await convert(conversion.amount, conversion.base_currency, conversion.to_currency)
-    conversion.conversion_id = new_id()
-    conv = Conversion(**conversion.model_dump(exclude_none=True, exclude={'to_currency'}))
-    db.add(conv)
-    db.commit()
-    db.close()
-    logging.log(level=logging.INFO, msg=f"New conversion created: {conversion.conversion_id} by {conversion.username}")
-    return conversion
+async def get_conversion_by_id(conversion_id: str) -> Conversion:
+    if b_id := await to_bson(conversion_id):
+        if conversion := Conversion.get(b_id):
+            return await conversion
+    raise NotFound("Conversion not found")
 
 
-async def get_conversion(c_id: str) -> ConversionModel:
-    if conv := db.query(Conversion).filter(Conversion.conversion_id == c_id).first():
-        logging.log(level=logging.INFO, msg=f"Conversion found: {c_id}")
-        conv_model = ConversionModel(
-            base_currency=conv.base_currency,
-            to_currency=[key for key in conv.conversions.keys()],
-            amount=conv.amount,
-            conversions=conv.conversions,
-            username=conv.username,
-            request_ip=conv.request_ip,
-            conversion_id=conv.conversion_id
-        )
-        return conv_model
-    logging.log(level=logging.INFO, msg=f"Conversion not found: {c_id}")
-    return None
-
-
-async def possible_conversions(currencies) -> any:
-    result = {}
-    if currencies is None or currencies == []:
-        consult = db.query(Currencies).all()
-    else:
-        consult = db.query(Currencies).filter(Currencies.code.in_(currencies.split(','))).all()
-
-    for c in consult:
-        result.update({
-            c.code: {
-                'name': c.name,
-                'name_plural': c.name_plural,
-                'code': c.code
-            }
-        })
-
-    return result
+async def possible_conversions(currencies: str) -> list[Currency]:
+    if currencies is None:
+        if all_currencies := Currency.find_all(projection_model=Currency):
+            return await all_currencies.to_list(length=100)
+    if currencies_consult := Currency.find(In(Currency.code, currencies.split(','))):
+        return await currencies_consult.to_list(length=100)
+    raise NotFound("Currency not found")
 
 
 async def convert(amount: float, base_currency: str, to_currency: str or list) -> any:
-    result = {
-        'errors': []
-    }
-    if all_currencies:
-        if isinstance(to_currency, str):
-            to_currency = [to_currency]
-        for currency in to_currency:
-            if all_currencies.get(currency):
-                currency_value = all_currencies.get(currency).get('value')
-                base_currency_value = all_currencies.get(base_currency).get('value')
-                result.update({
-                    currency: {
-                        'amount': round((amount / base_currency_value) * currency_value, 2),
-                        'unit_value': round((currency_value / all_currencies.get(base_currency).get('value')), 2)
-                    }
-                })
-                continue
-            result['errors'].append({
-                'currency': currency,
-                'error': 'Currency not found.',
-                'suggest': await did_you_mean(currency)
-            })
+    result = []
+    if isinstance(to_currency, str):
+        to_currency = [to_currency]
+    if all_currencies := Currency.find_all(projection_model=Currency):
+        for currency in await all_currencies.to_list(length=100):
+            if currency.code == base_currency:
+                base_currency = currency
+                break
+        for currency in await all_currencies.to_list(length=100):
+            if currency.code in to_currency:
+                result.append(ResultConversion(
+                    code=currency.code,
+                    value=round(amount * currency.value / base_currency.value, 2),
+                    last_update=currency.updated_at
+                ))
+
         return result
-    raise HTTPException(status_code=500, detail="Try again later.")
+    raise NotFound("Currency not found")
 
 
 async def did_you_mean(currency: str) -> any:
     higher = 0
     suggestion = None
-    if all_currencies:
-        for key in all_currencies.keys():
-            match = SequenceMatcher(None, currency, key).ratio()
-            if match > 0.5 and match > higher:
-                higher = match
-                suggestion = key
+    for key in await Currency.find_all().to_list():
+        match = SequenceMatcher(None, currency, key.code).ratio()
+        if match > 0.5 and match > higher:
+            higher = match
+            suggestion = key
+            continue
         return suggestion
-    raise HTTPException(status_code=500, detail="Try again later.")
-
-
-def update_all_currencies():
-    while True:
-        currencies = requests.get(url=f"{base}/currencies", headers={'apikey': api_key}).json().get('data')
-        currencies_values = requests.get(url=f"{base}/latest", headers={'apikey': api_key},
-                                         params={'base_currency': 'EUR'}).json().get('data')
-        if currency_exists := db.query(Currencies).filter(Currencies.code.in_(currencies.keys())).all():
-            for currency in currency_exists:
-                currency.c_value = currencies_values.get(currency.code)
-                currency.updated_at = datetime.datetime.now(datetime.UTC)
-        else:
-            for key, value in currencies.items():
-                conv = Currencies(
-                    code=key,
-                    name=value.get('name'),
-                    name_plural=value.get('name_plural'),
-                    c_value=currencies_values.get(key),
-                    base_currency='EUR',
-                    updated_at=datetime.datetime.now(datetime.UTC)
-                )
-                db.add(conv)
-        db.commit()
-        db.close()
-        logging.log(level=logging.INFO, msg="Updating currencies in Database, next in 6000 seconds.")
-        for key, value in currencies.items():
-            all_currencies.update({
-                key: {
-                    'name': value.get('name'),
-                    'name_plural': value.get('name_plural'),
-                    'code': key,
-                    'value': currencies_values.get(key),
-                    'base_currency': 'EUR',
-                    'updated_at': datetime.datetime.now(datetime.UTC)
-                }
-            })
-        logging.log(level=logging.INFO, msg="Currencies Server updated.")
-        time.sleep(6000)
-
-
-threading.Thread(target=update_all_currencies).start()
