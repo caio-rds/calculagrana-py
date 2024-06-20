@@ -21,3 +21,18 @@ class InvalidID(Exception):
         self.message = message
         super().__init__(self.message)
         raise HTTPException(status_code=400, detail=self.message)
+
+
+class PasswordMismatch(GenericException):
+    def __init__(self):
+        super().__init__('Password does not match', 400)
+
+
+class UserNotFound(GenericException):
+    def __init__(self):
+        super().__init__('User not found', 404)
+
+
+class CodeNotFound(GenericException):
+    def __init__(self):
+        super().__init__('Code not found', 404)

@@ -5,6 +5,7 @@ from app.src.model.conversion import Currency, ConversionRequest, Conversion, Re
 from app.src.utils.custom_exceptions import NotFound
 from beanie.operators import In
 
+from app.src.utils.logs import create_log
 from app.src.utils.validations import to_bson
 
 
@@ -13,6 +14,12 @@ async def new_conversion(conversion: ConversionRequest) -> Conversion:
     new_conv.conversions = await convert(conversion.amount, conversion.base_currency, conversion.to_currency)
     await new_conv.save()
     logging.log(level=logging.INFO, msg=f"New conversion created: {new_conv.id} by {new_conv.username}")
+    await create_log(
+        title="New conversion",
+        action=f"New conversion {new_conv.id} created",
+        user_trigger=new_conv.username,
+        level="INFO"
+    )
     return new_conv
 
 

@@ -1,34 +1,34 @@
-# import datetime
-#
-# from app.src.services.auth import encode_token, check_pwd
-# from sqlalchemy.orm import Session
-# from fastapi import HTTPException
-# from app.src.schema.user import User, UserLogin
-# from app.src.services.free_currency import SessionLocal
-#
-# db: Session = SessionLocal()
-#
-#
+import datetime
+
+from app.src.model.user import Login, LoginResponse, ReadUser, TryLogin
+from app.src.utils.auth import check_pwd, encode_token
+from app.src.utils.custom_exceptions import NotFound, PasswordMismatch, UserNotFound
+
+
 # async def upsert_token(username: str) -> str:
-#     if user := db.query(User).filter(User.username == username).first():
-#         user.token = await encode_token(user.username)
-#         user.logged_at = datetime.datetime.now(datetime.UTC)
-#         db.commit()
-#         db.refresh(user)
-#         db.close()
+#     if user := await Login.find_one(Login.username == username):
+#         if user.token_expire < datetime.datetime.now(datetime.timezone.utc):
+#             return user.token
+#         user.token = await encode_token(username)
+#         user.token_expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=10)
+#         await user.save()
 #         return user.token
-#     db.close()
-#     raise HTTPException(status_code=404, detail='User not found')
-#
-#
-# async def match_user(username: str, password: str, login_ip: str, user_agent: str) -> bool:
-#     if user := db.query(User).filter(User.username == username).first():
-#         if match := await check_pwd(password, user.password):
-#             login = UserLogin(username=user.username, logged_at=datetime.datetime.now(datetime.UTC),
-#                               login_ip=login_ip, user_agent=user_agent)
-#             db.add(login)
-#             db.commit()
-#             db.close()
-#             return match
-#     db.close()
-#     return False
+#     raise UserNotFound
+
+
+async def match_user(username: str, password: str, login_ip: str, user_agent: str) -> LoginResponse:
+    if user := await TryLogin.find_one(TryLogin.username == username):
+        if await check_pwd(password, user.password):
+            login = Login(
+                username=user.username,
+                token=await encode_token(username),
+                login_ip=login_ip,
+                user_agent=user_agent
+            )
+            await login.save()
+            return LoginResponse(
+                username=login.username,
+                token=login.token
+            )
+        raise PasswordMismatch
+    raise UserNotFound

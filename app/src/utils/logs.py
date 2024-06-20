@@ -1,12 +1,16 @@
-# import datetime
-#
-# from app.src.services.database import insert_one
-#
-#
-# async def create_log(title: str, action: str, user_trigger: str) -> None:
-#     await insert_one('logs', {
-#         'title': title,
-#         'action': action,
-#         'user_trigger': user_trigger,
-#         'date': datetime.datetime.now()
-#     })
+from app.src.model.logs import Log
+import logging
+
+
+async def create_log(title: str, action: str, user_trigger: str, level: str = 'INFO') -> None:
+    log = Log(
+        action=action,
+        message=title,
+        level=level,
+        user_trigger=user_trigger,
+        user_agent='API')
+    await log.insert()
+    logging.log(
+        level=getattr(logging, level),
+        msg=f'{title} - {action} - {user_trigger}'
+    )

@@ -1,9 +1,11 @@
+from beanie.exceptions import RevisionIdWasChanged
 from bson import ObjectId
-
-from app.src.model.user import ReadUser, CreateUser, RequestUpdateUser, UpdatedUser
+from app.src.model.conversion import Conversion
+from app.src.model.user import ReadUser, CreateUser, RequestUpdateUser, UpdatedUser, UserDeleted, Login
 from app.src.utils.auth import pwd_hash
-from app.src.utils.custom_exceptions import NotFound
+from app.src.utils.custom_exceptions import UserNotFound, GenericException
 from app.src.utils.validations import validate_bson
+from pymongo.errors import DuplicateKeyError
 
 
 async def read(identifier: str, conversions: bool = False, find_by: str = 'id') -> ReadUser:
@@ -17,23 +19,23 @@ async def read(identifier: str, conversions: bool = False, find_by: str = 'id') 
     if not conversions:
         if user := await ReadUser.find_one(queries.get(find_by, None)):
             return user
-        raise NotFound('User not found')
+        raise UserNotFound
 
     if user := await ReadUser.aggregate([
         {'$match': queries.get(find_by, None)},
         {'$lookup': {'from': 'conversions', 'localField': 'username', 'foreignField': 'username', 'as': 'conversions'}}
     ]).to_list():
         return user[0]
-    raise NotFound('User not found')
+    raise UserNotFound
 
 
 async def create(new_user: CreateUser) -> ReadUser:
     try:
         new_user.password = await pwd_hash(new_user.password)
-        user = await new_user.save()
+        user = await new_user.insert()
         return ReadUser(**user.model_dump())
-    except Exception as e:
-        print(e)
+    except DuplicateKeyError:
+        raise GenericException(message='User already exists', status_code=400)
 
 
 async def update(user_update: RequestUpdateUser) -> UpdatedUser:
@@ -44,23 +46,20 @@ async def update(user_update: RequestUpdateUser) -> UpdatedUser:
             setattr(user, key, value)
         await user.save()
         return user
-    raise NotFound('User not found')
+    raise UserNotFound
 
 
-
-
-
-
-#
-#
-# async def delete(username: str) -> bool:
-#     if user := db.query(User).filter(User.username == username).first():
-#         db.delete(user)
-#         if history := db.query(Conversion).filter(Conversion.username == username).all():
-#             for h in history:
-#                 h.username = 'user_deleted'
-#         db.commit()
-#         db.close()
-#         return True
-#     db.close()
-#     return False
+async def delete(username: str):
+    if user := await ReadUser.find_one(ReadUser.username == username):
+        await user.delete()
+        if user_has_conversions := await Conversion.find_one(Conversion.username == username):
+            await user_has_conversions.delete()
+        if login_history := await Login.find_one(Login.username == username):
+            await login_history.delete()
+        return UserDeleted(
+            username=user.username,
+            message='User deleted successfully',
+            status=True,
+            id=str(user.id)
+        )
+    raise UserNotFound

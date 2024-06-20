@@ -43,4 +43,10 @@ async def decode_token(token: str) -> dict:
 
 
 async def auth_wrapper(token: str = Depends(oauth_scheme)) -> dict:
-    return await decode_token(token)
+    if token:
+        return await decode_token(token)
+    raise HTTPException(status_code=401, detail='Bearer token not found')
+
+
+class AuthJWT:
+    pass
