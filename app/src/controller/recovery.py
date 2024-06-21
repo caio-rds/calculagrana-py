@@ -3,7 +3,8 @@ import random
 
 from app.src.controller.user import read
 from app.src.utils.auth import pwd_hash, check_pwd
-from app.src.model.user import RecoveryByPassword, RecoveryByCode, Recovery, ResponseRecovery, TryLogin
+from app.src.models.login import TryLogin
+from app.src.models.recovery import Recovery, RecoveryByCode, RecoveryByPassword, ResponseRecovery
 from app.src.utils.custom_exceptions import PasswordMismatch, UserNotFound, CodeNotFound
 
 

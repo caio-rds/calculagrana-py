@@ -4,7 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Request, HTTPException
 
-from app.src.model.conversion import Conversion, ConversionRequest
+from app.src.models.conversion import Conversion, ConversionRequest
 from app.src.controller.conversion import possible_conversions, new_conversion, get_conversion_by_id
 from app.src.utils.auth import auth_wrapper
 

@@ -1,7 +1,7 @@
 import logging
 from difflib import SequenceMatcher
 
-from app.src.model.conversion import Currency, ConversionRequest, Conversion, ResultConversion
+from app.src.models.conversion import Currency, ConversionRequest, Conversion, ResultConversion
 from app.src.utils.custom_exceptions import NotFound
 from beanie.operators import In
 

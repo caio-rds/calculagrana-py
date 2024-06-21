@@ -1,6 +1,6 @@
 import datetime
 
-from app.src.model.user import Login, LoginResponse, ReadUser, TryLogin
+from app.src.models.login import Login, LoginResponse, TryLogin
 from app.src.utils.auth import check_pwd, encode_token
 from app.src.utils.custom_exceptions import NotFound, PasswordMismatch, UserNotFound
 

@@ -1,4 +1,4 @@
-from app.src.model.logs import Log
+from app.src.models.logs import Log
 import logging
 
 

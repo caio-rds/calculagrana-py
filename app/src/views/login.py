@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.src.controller.login import match_user
-from app.src.model.user import LoginResponse
+from app.src.models.login import LoginResponse
 
 from app.src.utils.auth import auth_wrapper
 

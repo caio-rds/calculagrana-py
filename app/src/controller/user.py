@@ -1,7 +1,9 @@
-from beanie.exceptions import RevisionIdWasChanged
+from beanie.operators import Set
 from bson import ObjectId
-from app.src.model.conversion import Conversion
-from app.src.model.user import ReadUser, CreateUser, RequestUpdateUser, UpdatedUser, UserDeleted, Login
+from app.src.models.conversion import Conversion
+from app.src.models.user import ReadUser, CreateUser, RequestUpdateUser, UpdatedUser, UserDeleted, \
+    RequestUpdateUsername, ResponseUpdateUsername, TryUpdateUsername
+from app.src.models.login import Login
 from app.src.utils.auth import pwd_hash
 from app.src.utils.custom_exceptions import UserNotFound, GenericException
 from app.src.utils.validations import validate_bson
@@ -46,6 +48,23 @@ async def update(user_update: RequestUpdateUser) -> UpdatedUser:
             setattr(user, key, value)
         await user.save()
         return user
+    raise UserNotFound
+
+
+async def update_username(request_user: RequestUpdateUsername) -> ResponseUpdateUsername:
+    if user := await UpdatedUser.find_one(UpdatedUser.username == request_user.username):
+        if await ReadUser.find_one(ReadUser.username == request_user.new_username):
+            raise GenericException(message=f'New username {request_user.new_username} already in use', status_code=400)
+        user.username = request_user.new_username
+        await user.save()
+        await (Conversion.find(Conversion.username == request_user.username).
+               update({'$set': {'username': request_user.new_username}}))
+        return ResponseUpdateUsername(
+            username=user.username,
+            new_username=request_user.new_username,
+            message='Username updated successfully',
+            status=True
+        )
     raise UserNotFound
 
 

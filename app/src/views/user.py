@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException, Request
 
 from app.src.controller.recovery import user_request_code, recovery_by_password, recovery_by_code
-from app.src.controller.user import create, read, update, delete
-from app.src.model.user import (CreateUser, ReadUser, RequestUpdateUser, UpdatedUser, ResponseRecovery, RecoveryByCode,
-                                RecoveryByPassword, Recovered)
+from app.src.controller.user import create, read, update, delete, update_username
+from app.src.models.user import CreateUser, ReadUser, RequestUpdateUser, UpdatedUser, RequestUpdateUsername, \
+    ResponseUpdateUsername
+from app.src.models.recovery import RecoveryByCode, RecoveryByPassword, ResponseRecovery, Recovered
 
 router = APIRouter()
 
@@ -28,6 +29,11 @@ async def get_user(identifier: str, conversions: bool = False, find_by: str = 'i
 @router.put('/', response_model=UpdatedUser, response_model_exclude_unset=True)
 async def update_user(user: RequestUpdateUser) -> UpdatedUser:
     return await update(user)
+
+
+@router.put('/username', response_model=ResponseUpdateUsername, response_model_exclude_unset=True)
+async def update_user(user: RequestUpdateUsername) -> ResponseUpdateUsername:
+    return await update_username(user)
 
 
 @router.delete('/{username}')

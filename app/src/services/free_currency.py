@@ -1,12 +1,11 @@
 import datetime
-import json
+import logging
 import os
-import threading
 import time
 
 import requests as r
 
-from app.src.model.conversion import Currency
+from app.src.models.conversion import Currency
 
 api_key = os.getenv('FREE_CURRENCY_KEY')
 base = 'https://api.freecurrencyapi.com/v1'
@@ -36,6 +35,7 @@ class FreeCurrency:
 
 
 async def update_all_currencies():
+    logging.info('Currencies update thread started')
     while True:
         currencies = FreeCurrency.all_currencies()
         latest = FreeCurrency.latest_rates()
