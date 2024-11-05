@@ -4,3 +4,4 @@
 *.ipr
 .vscode/*
 .env
+currency_template
